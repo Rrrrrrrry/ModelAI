@@ -1,5 +1,5 @@
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
-from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import GridSearchCV, LeaveOneOut
 
 
 class RandomForest:
@@ -27,10 +27,32 @@ class RandomForest:
         X(array-like): The feature dataset
         y(array-like): The target dataset
         param_grid(dict): The parameter to grid search, defaults to None
-        cv(int):the number of cross-validation folds, defaults to 5
+            can contain the following parameters:
+            'n_estimators': The number of decision trees,
+            'criterion': The criterion used to measure the quality of a split,
+                        for classification problems, commonly used criteria are "gini" or "entropy",
+                        for regression problems, commonly used "mse" or "mae",
+            'max_depth': The maximum depth of the decision trees,
+            'min_samples_split': The minimum number of samples required to split an internal node,
+            'min_samples_leaf': The minimum number of samples required to be at a leaf node,
+            'max_features': The number of features to consider when looking for the best split,
+            'bootstrap':Whether to use bootstrap sampling with replacement to build the decision trees
+        Example:
+        param_grid = {
+                        'n_estimators': [50, 100, 200],
+                        'criterion': ['gini', 'entropy', 'mse', 'mae'],
+                        'max_depth': [5, 10],
+                        'min_samples_split': [2, 5, 10],
+                        'min_samples_leaf': [1, 2, 4],
+                        'max_features': [None],
+                        'bootstrap':[True, False]
+                    }
 
+        cv(int):the number of cross-validation folds, defaults to None
 
         Returns
+        self : object
+            Returns the instance itself.
         -------
         """
         if self.model_type == 'classification':
@@ -76,7 +98,13 @@ if __name__ == '__main__':
         'bootstrap':[True, False]
     }
 
-    model.train(X, y, param_grid=param_grid, cv=2)
+    """
+    The number of samples for each class must be less than or equal to cv
+    if greater than cv, can use LeaveOneOut
+    """
+    cv = LeaveOneOut()
+    # cv = 2
+    model.train(X, y, param_grid=param_grid, cv=cv)
 
     predictions = model.predict([[4, 4], [5, 5]])
 
