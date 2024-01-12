@@ -6,9 +6,10 @@ class RandomForest:
     """
     Random Forest Classifier/Regressor
     """
+
     def __init__(self, model_type):
         """
-        Constructor for intializing the Random Forest model
+        Constructor for initialize the Random Forest model
 
         Parameters:
         -----------
@@ -16,7 +17,7 @@ class RandomForest:
         """
         self.model_type = model_type
         self.model = None
-        self.model_params = None
+        self.best_params_ = None
 
     def train(self, X, y, param_grid=None, cv=None):
         """
@@ -69,7 +70,6 @@ class RandomForest:
         self.best_params_ = grid_search.best_params_
         self.model = grid_search.best_estimator_
 
-
     def predict(self, X):
         """
 
@@ -80,32 +80,3 @@ class RandomForest:
         if self.model is None:
             raise ValueError('Model is not been trained yet. Please call the train method first.')
         return self.model.predict(X)
-
-
-if __name__ == '__main__':
-    model = RandomForest(model_type='classification')
-
-    X = [[0, 0], [1, 1], [2, 2], [3, 3]]
-    y = [0, 1, 2, 3]
-
-    param_grid = {
-        'n_estimators': [50, 100, 200],
-        'criterion': ['gini', 'entropy', 'mse', 'mae'],
-        'max_depth': [5, 10],
-        'min_samples_split': [2, 5, 10],
-        'min_samples_leaf': [1, 2, 4],
-        'max_features': [None],
-        'bootstrap':[True, False]
-    }
-
-    """
-    The number of samples for each class must be less than or equal to cv
-    if greater than cv, can use LeaveOneOut
-    """
-    cv = LeaveOneOut()
-    # cv = 2
-    model.train(X, y, param_grid=param_grid, cv=cv)
-
-    predictions = model.predict([[4, 4], [5, 5]])
-
-    print(predictions)
