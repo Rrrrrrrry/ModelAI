@@ -5,6 +5,7 @@ current_dir = os.path.dirname(os.path.abspath(sys.path[0]))
 sys.path.append(current_dir)
 from algorithms.machine_learning.ensemble.random_forest import RandomForest
 from sklearn.model_selection import LeaveOneOut
+from sklearn.inspection import permutation_importance
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -31,9 +32,13 @@ if __name__ == '__main__':
     """
     cv = LeaveOneOut()
     # cv = 2
-    model.train(X, y, param_grid=param_grid, cv=cv)
+    model.train(X, y, param_grid=None, cv=cv)
 
     predictions = model.predict([[4, 4], [5, 5]])
 
     print(predictions)
-    print(model.best_params_)
+    print(model.model.feature_importances_)
+
+    perm_importance = permutation_importance(model.model, X, y)
+    print(f"perm_importance{perm_importance.importances_mean}")
+
