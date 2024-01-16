@@ -64,7 +64,6 @@ class RandomForest:
             print('Invalid model type.Supported model types are: classification, regression')
         if param_grid is None:
             self.model.fit(X, y)
-            importances = self.model.feature_importances_
             return self.model
         grid_search = GridSearchCV(self.model, param_grid, cv=cv)
         grid_search.fit(X, y)

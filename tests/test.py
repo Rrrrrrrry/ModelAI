@@ -1,29 +1,24 @@
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.datasets import load_iris
-from sklearn.inspection import permutation_importance
+from sklearn import datasets
+from sklearn.model_selection import train_test_split
+from sklearn import tree
 import matplotlib.pyplot as plt
 
-# 加载示例数据集
-iris = load_iris()
+# 加载数据集
+iris = datasets.load_iris()
 X = iris.data
 y = iris.target
 
-# 创建随机森林分类器模型
-rf = RandomForestClassifier().fit(X, y)
+# 划分训练集和测试集
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-# 计算特征的排列重要性
-perm_importance = permutation_importance(rf, X, y)
+# 创建随机森林分类器
+clf = RandomForestClassifier(n_estimators=10, random_state=42)
 
-# 获取特征排列重要性得分
-importances = perm_importance.importances_mean
+# 训练随机森林
+clf.fit(X_train, y_train)
 
-# 输出特征排列重要性得分
-for i, feature in enumerate(iris.feature_names):
-    print(f"Feature {feature}: Importance {importances[i]}")
-
-# 绘制特征排列重要性条形图
-plt.bar(iris.feature_names, importances)
-plt.xlabel('Feature')
-plt.ylabel('Importance')
-plt.title('Permutation Importance')
+# 可视化整个随机森林
+fig, axes = plt.subplots(nrows=1, ncols=1, figsize=(10, 10), dpi=300)
+tree.plot_tree(clf.estimators_[0], feature_names=iris.feature_names, class_names=iris.target_names, filled=True)
 plt.show()

@@ -37,7 +37,7 @@ if __name__ == '__main__':
     predictions = model.predict([[4, 4], [5, 5]])
 
     print(predictions)
-    print(model.model.feature_importances_)
+    print(f"feature_importances_:{model.model.feature_importances_}")
 
     perm_importance = permutation_importance(model.model, X, y)
     print(f"perm_importance{perm_importance.importances_mean}")
