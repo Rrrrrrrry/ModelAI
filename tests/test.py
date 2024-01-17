@@ -17,7 +17,7 @@ clf = RandomForestClassifier(n_estimators=10, random_state=42)
 
 # 训练随机森林
 clf.fit(X_train, y_train)
-
+print(f"iris.target_names{iris.target_names}")
 # 可视化整个随机森林
 fig, axes = plt.subplots(nrows=1, ncols=1, figsize=(10, 10), dpi=300)
 tree.plot_tree(clf.estimators_[0], feature_names=iris.feature_names, class_names=iris.target_names, filled=True)

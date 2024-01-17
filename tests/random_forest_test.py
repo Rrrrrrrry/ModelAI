@@ -42,3 +42,9 @@ if __name__ == '__main__':
     perm_importance = permutation_importance(model.model, X, y)
     print(f"perm_importance{perm_importance.importances_mean}")
 
+    from matplotlib import pyplot as plt
+    from sklearn import tree
+    # 可视化整个随机森林
+    fig, axes = plt.subplots(nrows=1, ncols=1, figsize=(10, 10), dpi=300)
+    tree.plot_tree(model.model.estimators_[0], feature_names=['one', 'two'], class_names=['0', '1', '2', '3'], filled=True)
+    plt.show()
