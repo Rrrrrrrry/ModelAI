@@ -7,7 +7,7 @@ class RandomForest:
     Random Forest Classifier/Regressor
     """
 
-    def __init__(self, model_type):
+    def __init__(self, model_type, **kwargs):
         """
         Constructor for initialize the Random Forest model
 
@@ -16,10 +16,17 @@ class RandomForest:
         model_type: The model type,can be 'classification' or 'regression'
         """
         self.model_type = model_type
-        self.model = None
+        if self.model_type == 'classification':
+            self.model = RandomForestClassifier(**kwargs)
+        elif self.model_type == 'regression':
+            self.model = RandomForestRegressor(**kwargs)
+        else:
+            print('Invalid model type.Supported model types are: classification, regression')
+            self.model = None
         self.best_params_ = None
 
-    def train(self, X, y, param_grid=None, cv=None):
+
+    def train(self, X, y):
         """
         Train the Random Forest
 
@@ -56,27 +63,22 @@ class RandomForest:
             Returns the instance itself.
         -------
         """
-        if self.model_type == 'classification':
-            self.model = RandomForestClassifier()
-        elif self.model_type == 'regression':
-            self.model = RandomForestRegressor()
-        else:
-            print('Invalid model type.Supported model types are: classification, regression')
-        if param_grid is None:
+        if self.model is not None:
             self.model.fit(X, y)
-            return self.model
-        grid_search = GridSearchCV(self.model, param_grid, cv=cv)
-        grid_search.fit(X, y)
-        self.best_params_ = grid_search.best_params_
-        self.model = grid_search.best_estimator_
 
     def predict(self, X):
         """
-
         :param X:
         :return:
         """
-
         if self.model is None:
             raise ValueError('Model is not been trained yet. Please call the train method first.')
         return self.model.predict(X)
+
+    def grid_search_cv(self, X, y, param_grid, cv=None):
+        if self.model is None:
+            raise ValueError('Model is not been trained yet. Please call the train method first.')
+        grid_search = GridSearchCV(self.model, param_grid=param_grid, cv=cv)
+        grid_search.fit(X, y)
+        self.best_params_ = grid_search.best_params_
+        self.model = grid_search.best_estimator_

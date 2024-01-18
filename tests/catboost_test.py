@@ -14,6 +14,8 @@ warnings.filterwarnings("ignore")
 current_dir = os.path.dirname(os.path.abspath(sys.path[0]))
 sys.path.append(current_dir)
 from algorithms.machine_learning.ensemble.catboost_model import CatBoostManager
+
+
 if __name__ == '__main__':
     # 加载示例数据集
     data = load_iris()
