@@ -9,11 +9,12 @@ current_dir = os.path.dirname(os.path.abspath(sys.path[0]))
 sys.path.append(current_dir)
 from algorithms.machine_learning.ensemble.catboost_model import CatBoostManager
 
-
 if __name__ == '__main__':
     # 加载示例数据集
     data = load_iris()
     X, y = data.data, data.target
+
+
     # 划分训练集和测试集
     train_features, test_features, train_labels, test_labels = train_test_split(X, y, test_size=0.2, random_state=42)
 
