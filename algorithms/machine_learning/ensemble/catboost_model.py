@@ -48,10 +48,15 @@ class CatBoostManager:
     def objective(self, trial):
         # Optuna objective function for parameter optimization
         params = {
-            'iterations': trial.suggest_int('iterations', 100, 1000),
-            'learning_rate': trial.suggest_loguniform('learning_rate', 0.01, 0.3),
-            'depth': trial.suggest_int('depth', 4, 10),
-            'l2_leaf_reg': trial.suggest_loguniform('l2_leaf_reg', 1e-5, 1e2),
+            'iterations': trial.suggest_int('iterations', 100, 3000),
+            'depth': trial.suggest_int('depth', 1, 15),
+            'learning_rate': trial.suggest_float('learning_rate', 0.001, 1.0),
+            'random_strength': trial.suggest_int('random_strength', 1, 100),
+            'bagging_temperature': trial.suggest_float('bagging_temperature', 0.0, 50.0),
+            'od_type': trial.suggest_categorical('od_type', ['IncToDec', 'Iter']),
+            'od_wait': trial.suggest_int('od_wait', 10, 50),
+            'l2_leaf_reg': trial.suggest_float('l2_leaf_reg', 1e-8, 10.0, log=True),
+            'min_data_in_leaf': trial.suggest_int('min_data_in_leaf', 1, 200),
         }
 
         self.train(params)
