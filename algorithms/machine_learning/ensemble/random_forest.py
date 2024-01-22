@@ -1,3 +1,4 @@
+import joblib
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.model_selection import GridSearchCV, LeaveOneOut
 
@@ -24,7 +25,6 @@ class RandomForest:
             print('Invalid model type.Supported model types are: classification, regression')
             self.model = None
         self.best_params_ = None
-
 
     def train(self, X, y):
         """

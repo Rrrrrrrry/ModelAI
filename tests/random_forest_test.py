@@ -3,6 +3,7 @@ import sys
 current_dir = os.path.dirname(os.path.abspath(sys.path[0]))
 sys.path.append(current_dir)
 from algorithms.machine_learning.ensemble.random_forest import RandomForest
+from utils.model_utils import *
 from sklearn.model_selection import LeaveOneOut
 from sklearn.inspection import permutation_importance
 from sklearn.datasets import load_iris
@@ -61,10 +62,10 @@ if __name__ == '__main__':
     # cv = 2
     model.grid_search_cv(X_train, y_train, param_grid=param_grid, cv=cv)
     # model.train(X_train, y_train)
-
+    save_model(model, os.path.join(sys.path[0], 'save_model/random_forest_model.joblib'))
+    model = load_model(os.path.join(sys.path[0], 'save_model/random_forest_model.joblib'), data_format='joblib')
     predictions = model.predict(X_test)
-
-    print(predictions)
+    print(f"predictions{predictions}")
     print(f"feature_importances_:{model.model.feature_importances_}")
 
     perm_importance = permutation_importance(model.model, X_train, y_train)

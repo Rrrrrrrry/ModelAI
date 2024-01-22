@@ -1,11 +1,5 @@
-import sys
-
-import catboost
-import optuna
-import joblib  # For model serialization
 from catboost import CatBoostClassifier, Pool
 from sklearn.datasets import load_iris
-from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 import os
 import sys
@@ -27,9 +21,19 @@ if __name__ == '__main__':
     train_data = Pool(data=train_features, label=train_labels)
     test_data = Pool(data=test_features, label=test_labels)
 
-
-    catboost_manager = CatBoostManager(train_data, test_data, model_save_path=os.path.join(sys.path[0], "save_model", "catboost_model.cbm"))
+    catboost_manager = CatBoostManager(train_data, test_data)
     catboost_manager.optimize_parameters()
-    catboost_manager.train(catboost_manager.best_trial_params)
-    catboost_manager.test()
-    catboost_manager.save_model()
+    # catboost_manager.train(catboost_manager.best_trial_params)
+    catboost_manager.save_model(model_save_path=os.path.join(sys.path[0], "save_model", "catboost_model.cbm"))
+    catboost_manager.load_model(model_load_path=os.path.join(sys.path[0], "save_model", "catboost_model.cbm"))
+    pre_result = catboost_manager.predict(test_data)
+    print(f"pre result: {pre_result}")
+    # 获取在验证集上性能最好的迭代次数
+    best_iteration = catboost_manager.model.get_best_iteration()
+    # 获取在验证集上的性能指标
+    print(f"catboost_manager:{catboost_manager}")
+    print(f"catboost_manager.model:{catboost_manager.model}")
+    eval_metrics = catboost_manager.model.get_evals_result()
+    print(f"best_iteration{best_iteration}")
+    print(f"eval_metrics{eval_metrics}")
+    # catboost_manager.test()
