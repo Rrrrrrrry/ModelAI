@@ -1,40 +1,58 @@
-import optuna
-import os
 
-class OptunaOptimizer:
-    def __init__(self, model_class, train_data, test_data, eval_metric='Accuracy'):
-        self.model_class = model_class
-        self.train_data = train_data
-        self.test_data = test_data
-        self.eval_metric = eval_metric
-        self.best_trial_params = None
 
-    def objective(self, trial):
-        # Optuna优化参数的目标函数
-        params = {
-            'iterations': trial.suggest_int('iterations', 100, 1000),
-            'learning_rate': trial.suggest_loguniform('learning_rate', 0.01, 0.3),
-            'depth': trial.suggest_int('depth', 4, 10),
-            'l2_leaf_reg': trial.suggest_loguniform('l2_leaf_reg', 1e-5, 1e2),
-        }
+import numpy as np
+from hmmlearn import hmm
 
-        model = self.model_class(**params, eval_metric=self.eval_metric)
-        model.fit(self.train_data, eval_set=self.test_data, verbose=100)
-        score = model.score(self.test_data)
-        return 1.0 - score  # Optuna最小化目标函数，因此返回1 - score
 
-    def optimize_parameters(self, n_trials=5):
-        # 使用Optuna优化模型参数
-        study = optuna.create_study(direction='minimize')
-        study.optimize(self.objective, n_trials=n_trials)
+# 创建模拟的多维观测序列
+np.random.seed(42)
+obs_seq = np.random.randn(100, 5)  # 100个时间步，每个时间步有5个特征
 
-        print("Best trial:")
-        print(study.best_trial.params)
-        print(f"Best {self.eval_metric}: {1.0 - study.best_value}")
+# 创建 GaussianHMM 模型
+model = hmm.GaussianHMM(n_components=3, covariance_type="full", n_iter=100, startprob_prior=np.array([1, 0, 0]),  transmat_prior=np.array([[0.9, 0.1, 0], [0, 0.9, 0.1], [0.1, 0, 0.9]]))
 
-        # 保存最佳模型
-        self.best_trial_params = study.best_trial.params
-        best_model = self.model_class(**self.best_trial_params, eval_metric=self.eval_metric)
-        best_model.fit(self.train_data, eval_set=self.test_data, verbose=100)
+# 拟合模型
+model.fit(obs_seq)
+print(model.transmat_)
+print(model.means_.shape)
+print(model.covars_.shape)
+# 预测隐藏状态序列
+hidden_states = model.predict(obs_seq)
 
-        return best_model
+print("Hidden States:", hidden_states)
+input('a')
+
+
+# 生成一些模拟数据
+np.random.seed(42)
+observations = np.random.randint(0, 10, (100, 5))  # 观察状态
+
+# 初始化MultinomialHMM模型，限制隐藏状态范围
+model = hmm.MultinomialHMM(n_components=3, n_iter=200, tol=0.01, startprob_prior=np.array([1, 0, 0]), transmat_prior=np.array([[0.9, 0.1, 0], [0, 0.9, 0.1], [0.1, 0, 0.9]]))
+print(observations.shape)
+
+# 训练HMM模型
+model.fit(observations)
+# 预测隐藏状态序列
+hidden_states = model.predict(observations)
+print(hidden_states)
+input('a')
+
+from hmmlearn import hmm
+import numpy as np
+
+# 生成一些模拟数据
+np.random.seed(42)
+observations = np.random.randint(0, 10, (100, 5))  # 观察状态
+# 构建一个简单的HMM模型
+model = hmm.MultinomialHMM(n_components=3, n_iter=200, tol=0.01)
+print(observations.shape)
+# 训练HMM模型
+model.fit(observations)
+
+# 预测隐藏状态序列
+hidden_states = model.predict(observations)
+
+# 输出隐藏状态和观察状态序列
+print("Hidden States:", hidden_states, len(hidden_states))
+print("Observations:", observations, len(observations))
