@@ -4,6 +4,9 @@ from sklearn.metrics.pairwise import euclidean_distances
 
 
 class KMaximClustering:
+    """
+    K-means的一种变体，采用密度来初始化聚类中心点，逐步迭代更新
+    """
     def __init__(self, k=3, radius=0.5, max_iter=100, tol=1e-4):
         self.k = k
         self.radius = radius
@@ -22,6 +25,12 @@ class KMaximClustering:
                 break
 
     def _find_centroids(self, X):
+        """
+        使用指数函数来将距离转换为相似度，即越近的点具有更大的相似度。
+        指数函数它对于小的距离值会有较大的响应，而对于大的距离值则会有较小的响应。
+        :param X:
+        :return:
+        """
         distances = euclidean_distances(X)
         density = np.sum(np.exp(-distances ** 2 / (2 * self.radius ** 2)), axis=1)
         sorted_indices = np.argsort(-density)

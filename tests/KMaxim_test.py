@@ -25,10 +25,11 @@ if __name__ == "__main__":
             cluster = X[labels == label]
             plt.scatter(cluster[:, 0], cluster[:, 1], color='gray', label='Noise')
         else:
+            print('Cluster {}'.format(label + 1))
             cluster = X[labels == label]
             plt.scatter(cluster[:, 0], cluster[:, 1], label='Cluster {}'.format(label + 1))
 
-    plt.title('DBSCAN Clustering')
+    plt.title('kmaxim clustering')
     plt.xlabel('Feature 1')
     plt.ylabel('Feature 2')
     plt.legend()
