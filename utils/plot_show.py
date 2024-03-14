@@ -23,6 +23,8 @@ def show_voronoi(points):
 
     # 显示图形
     plt.show()
-if __name__ == '__main__':
-    points = np.random.rand(10, 2)
-    show_voronoi(points)
+
+
+# if __name__ == '__main__':
+#     points = np.random.rand(10, 2)
+#     show_voronoi(points)

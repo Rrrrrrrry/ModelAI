@@ -19,7 +19,8 @@ def plot_jointplot(data, x, y, kind='scatter', **kwargs):
     sns.jointplot(x=x, y=y, data=data, kind=kind, **kwargs)
     plt.show()
 
-if __name__ == '__main__':
-    # 示例用法
-    tips = sns.load_dataset("tips")
-    plot_jointplot(data=tips, x="total_bill", y="tip", kind="scatter")
+
+# if __name__ == '__main__':
+#     # 示例用法
+#     tips = sns.load_dataset("tips")
+#     plot_jointplot(data=tips, x="total_bill", y="tip", kind="scatter")
