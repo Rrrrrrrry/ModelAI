@@ -6,7 +6,7 @@ from scipy.spatial import Voronoi, voronoi_plot_2d
 
 def show_voronoi(points):
     """
-    计算Voronoi图并展示
+    计算Voronoi图并展示(沃罗诺伊图)
     :param points:
     :return:
     """
