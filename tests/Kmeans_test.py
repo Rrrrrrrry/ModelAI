@@ -21,6 +21,7 @@ if __name__ == '__main__':
     print("聚类中心点：", kmeans_model.centers)
     print("簇标签：", kmeans_model.labels)
     vor = Voronoi(kmeans_model.centers)
+
     # 绘制 Voronoi 图
     voronoi_plot_2d(vor)
     # 绘制原始图像和中心点
