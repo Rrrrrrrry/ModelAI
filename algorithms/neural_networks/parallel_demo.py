@@ -1,19 +1,9 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
-import torch.distributed as dist
 import torchvision
 import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
-from torch.nn.parallel import DistributedDataParallel as DDP
-import os
-
-
-# 初始化分布式环境
-def init_process(rank, size, backend='nccl'):
-    os.environ['MASTER_ADDR'] = 'localhost'
-    os.environ['MASTER_PORT'] = '12355'
-    dist.init_process_group(backend, rank=rank, world_size=size)
 
 
 # 定义神经网络模型
@@ -36,10 +26,7 @@ class SimpleCNN(nn.Module):
         return x
 
 
-def main(rank, size):
-    # 初始化分布式环境
-    init_process(rank, size)
-
+def main():
     # 设置随机种子
     torch.manual_seed(42)
 
@@ -49,33 +36,41 @@ def main(rank, size):
         transforms.Normalize((0.5,), (0.5,))
     ])
 
-    # 分布式数据并行化
-    device = torch.device(rank)
-    model = SimpleCNN().to(device)
-    model = DDP(model, device_ids=[rank])
-
     # 下载和加载数据集
     train_set = torchvision.datasets.MNIST(root='./data', train=True, download=True, transform=transform)
     test_set = torchvision.datasets.MNIST(root='./data', train=False, download=True, transform=transform)
 
-    # 使用分布式数据加载器
-    train_sampler = torch.utils.data.distributed.DistributedSampler(train_set, num_replicas=size, rank=rank)
-    train_loader = DataLoader(train_set, batch_size=64, shuffle=False, sampler=train_sampler)
+    # 设置数据加载器
+    train_loader = DataLoader(train_set, batch_size=64, shuffle=True)
     test_loader = DataLoader(test_set, batch_size=64, shuffle=False)
 
-    # 初始化优化器
-    optimizer = optim.SGD(model.parameters(), lr=0.01)
+    # 初始化模型和优化器
+    model = SimpleCNN()
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model.to(device)
+    if torch.cuda.device_count() > 1:
+        print("使用{}个GPU进行训练.".format(torch.cuda.device_count()))
+        model = nn.DataParallel(model)
+
+    criterion = nn.CrossEntropyLoss()
+    optimizer = optim.Adam(model.parameters(), lr=0.001)
 
     # 训练模型
-    model.train()
     for epoch in range(5):  # 假设进行5个epoch的训练
+        model.train()
+        running_loss = 0.0
         for i, data in enumerate(train_loader, 0):
             inputs, labels = data[0].to(device), data[1].to(device)
             optimizer.zero_grad()
             outputs = model(inputs)
-            loss = nn.functional.cross_entropy(outputs, labels)
+            loss = criterion(outputs, labels)
             loss.backward()
             optimizer.step()
+            running_loss += loss.item()
+            if i % 100 == 99:  # 每100个batch打印一次训练状态
+                print('[%d, %5d] loss: %.3f' %
+                      (epoch + 1, i + 1, running_loss / 100))
+                running_loss = 0.0
 
     # 测试模型
     model.eval()
@@ -89,17 +84,9 @@ def main(rank, size):
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
 
-    print(f'进程 {rank} 在测试集上的准确率: {100 * correct / total} %')
+    print('测试集准确率: %d %%' % (
+            100 * correct / total))
 
 
 if __name__ == "__main__":
-    # 假设有两台服务器，每台服务器有两个 GPU
-    size = 4  # 进程数
-    processes = []
-    for rank in range(size):
-        p = torch.multiprocessing.Process(target=main, args=(rank, size))
-        p.start()
-        processes.append(p)
-
-    for p in processes:
-        p.join()
+    main()
