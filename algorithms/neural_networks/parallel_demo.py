@@ -1,9 +1,14 @@
+import os
+
 import torch
 import torch.nn as nn
 import torch.optim as optim
 import torchvision
 import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
+import torch.distributed as dist
+from torch.nn.parallel import DistributedDataParallel as DDP
+import torch.multiprocessing as mp
 
 
 # 定义神经网络模型
@@ -26,9 +31,10 @@ class SimpleCNN(nn.Module):
         return x
 
 
-def main():
+def single_server_multi_gpu():
     # 设置随机种子
     torch.manual_seed(42)
+
 
     # 设置数据转换
     transform = transforms.Compose([
@@ -43,6 +49,7 @@ def main():
     # 设置数据加载器
     train_loader = DataLoader(train_set, batch_size=64, shuffle=True)
     test_loader = DataLoader(test_set, batch_size=64, shuffle=False)
+
 
     # 初始化模型和优化器
     model = SimpleCNN()
@@ -88,5 +95,68 @@ def main():
             100 * correct / total))
 
 
+def get_data():
+    transform = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize((0.5,), (0.5,))
+    ])
+
+    train_set = torchvision.datasets.MNIST(root='./data', train=True, download=True, transform=transform)
+    train_sampler = torch.utils.data.distributed.DistributedSampler(train_set)
+    train_loader = torch.utils.data.DataLoader(train_set, batch_size=64, shuffle=False, sampler=train_sampler)
+
+    test_set = torchvision.datasets.MNIST(root='./data', train=False, download=True, transform=transform)
+    test_loader = torch.utils.data.DataLoader(test_set, batch_size=64, shuffle=False)
+
+    return train_loader, test_loader
+
+
+# 初始化进程组
+def init_process(rank, world_size):
+    os.environ['MASTER_ADDR'] = 'localhost'
+    os.environ['MASTER_PORT'] = '12355'
+
+    # os.environ['GLOO_SOCKET_IFNAME'] = 'eth0'
+    # os.environ['NCCL_SOCKET_IFNAME'] = 'eth0'
+    # CPU最好用gloo,GPU用nccl
+    dist.init_process_group("gloo", rank=rank, world_size=world_size)
+
+
+# 多机多 GPU 并行训练
+def multi_server_multi_gpu(rank, world_size):
+    # 初始化进程组
+    init_process(rank, world_size)
+
+    train_loader, _ = get_data()
+
+    model = SimpleCNN().to(rank)
+    ddp_model = DDP(model, device_ids=[rank])
+
+    criterion = nn.CrossEntropyLoss()
+    optimizer = optim.Adam(ddp_model.parameters(), lr=0.001)
+
+    for epoch in range(5):  # 假设进行5个epoch的训练
+        ddp_model.train()
+        running_loss = 0.0
+        for i, data in enumerate(train_loader, 0):
+            inputs, labels = data[0].to(rank), data[1].to(rank)
+            optimizer.zero_grad()
+            outputs = ddp_model(inputs)
+            loss = criterion(outputs, labels)
+            loss.backward()
+            optimizer.step()
+            running_loss += loss.item()
+            if i % 100 == 99:  # 每100个batch打印一次训练状态
+                print('[%d, %5d] loss: %.3f' % (epoch + 1, i + 1, running_loss / 100))
+                running_loss = 0.0
+
+
 if __name__ == "__main__":
-    main()
+    # 单服务器多GPU
+    single_server_multi_gpu()
+
+    # 多服务器多GPU
+    # world_size = 2  # 假设有两台服务器
+    # mp.spawn(multi_server_multi_gpu, args=(world_size,), nprocs=world_size)
+    # python distributed.py -bk nccl -im tcp://10.10.10.1:12345 -rn 0 -ws 2
+    # python distributed.py -bk nccl -im tcp://10.10.10.1:12345 -rn 1 -ws 2
