@@ -12,6 +12,8 @@ if __name__ == '__main__':
     digits = load_digits()
     X = digits.data
     y = digits.target
+    print(type(X), X.shape)
+    print(type(y), y)
     x_tsne = tsne(X, n_components=2, random_state=42)
 
     # 可视化降维后的数据
