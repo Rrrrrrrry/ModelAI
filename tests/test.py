@@ -1,105 +1,57 @@
-import torch
-import torch.nn as nn
-import torch.optim as optim
-import torch.distributed as dist
-import torchvision
-import torchvision.transforms as transforms
-from torch.utils.data import DataLoader
-from torch.nn.parallel import DistributedDataParallel as DDP
-import os
+# 导入所需的库
+import numpy as np
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier, VotingClassifier
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.svm import SVC
+from sklearn.ensemble import StackingClassifier
+from sklearn.linear_model import LogisticRegression
+class CustomVotingClassifier:
+    def __init__(self, estimators, voting='hard'):
+        self.estimators = estimators
+        self.voting = voting
+        self.voting_classifier = VotingClassifier(estimators=self.estimators, voting=self.voting)
 
+    def fit(self, X, y):
+        self.voting_classifier.fit(X, y)
 
-# 初始化分布式环境
-def init_process(rank, size, backend='nccl'):
-    os.environ['MASTER_ADDR'] = 'localhost'
-    os.environ['MASTER_PORT'] = '12355'
-    dist.init_process_group(backend, rank=rank, world_size=size)
+    def predict(self, X):
+        return self.voting_classifier.predict(X)
 
+    def predict_proba(self, X):
+        return self.voting_classifier.predict_proba(X)
 
-# 定义神经网络模型
-class SimpleCNN(nn.Module):
-    def __init__(self):
-        super(SimpleCNN, self).__init__()
-        self.conv1 = nn.Conv2d(1, 32, 3, 1)
-        self.conv2 = nn.Conv2d(32, 64, 3, 1)
-        self.fc1 = nn.Linear(64 * 5 * 5, 128)
-        self.fc2 = nn.Linear(128, 10)
+# 加载鸢尾花数据集
+iris = load_iris()
+X, y = iris.data, iris.target
 
-    def forward(self, x):
-        x = torch.relu(self.conv1(x))
-        x = torch.max_pool2d(x, 2, 2)
-        x = torch.relu(self.conv2(x))
-        x = torch.max_pool2d(x, 2, 2)
-        x = x.view(-1, 64 * 5 * 5)
-        x = torch.relu(self.fc1(x))
-        x = self.fc2(x)
-        return x
+# 将数据集划分为训练集和测试集
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
+# 定义基本分类器
+base_classifiers = [
+    ('rf', RandomForestClassifier(n_estimators=10, random_state=42)),
+    ('knn', KNeighborsClassifier()),
+    ('svm', SVC(kernel='linear', probability=True))
+]
 
-def main(rank, size):
-    # 初始化分布式环境
-    init_process(rank, size)
+# 定义次级分类器
+meta_classifier = LogisticRegression()
 
-    # 设置随机种子
-    torch.manual_seed(42)
+# 定义Stacking分类器
+stacking_classifier = StackingClassifier(estimators=base_classifiers, final_estimator=meta_classifier, cv=5)
 
-    # 设置数据转换
-    transform = transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Normalize((0.5,), (0.5,))
-    ])
+# 训练Stacking分类器
+stacking_classifier.fit(X_train, y_train)
 
-    # 分布式数据并行化
-    device = torch.device(rank)
-    model = SimpleCNN().to(device)
-    model = DDP(model, device_ids=[rank])
+# 在测试集上进行预测
+y_pred = stacking_classifier.predict(X_test)
 
-    # 下载和加载数据集
-    train_set = torchvision.datasets.MNIST(root='./data', train=True, download=True, transform=transform)
-    test_set = torchvision.datasets.MNIST(root='./data', train=False, download=True, transform=transform)
+# 输出预测结果
+print("Stacking Classifier Predictions:")
+print(y_pred)
 
-    # 使用分布式数据加载器
-    train_sampler = torch.utils.data.distributed.DistributedSampler(train_set, num_replicas=size, rank=rank)
-    train_loader = DataLoader(train_set, batch_size=64, shuffle=False, sampler=train_sampler)
-    test_loader = DataLoader(test_set, batch_size=64, shuffle=False)
-
-    # 初始化优化器
-    optimizer = optim.SGD(model.parameters(), lr=0.01)
-
-    # 训练模型
-    model.train()
-    for epoch in range(5):  # 假设进行5个epoch的训练
-        for i, data in enumerate(train_loader, 0):
-            inputs, labels = data[0].to(device), data[1].to(device)
-            optimizer.zero_grad()
-            outputs = model(inputs)
-            loss = nn.functional.cross_entropy(outputs, labels)
-            loss.backward()
-            optimizer.step()
-
-    # 测试模型
-    model.eval()
-    correct = 0
-    total = 0
-    with torch.no_grad():
-        for data in test_loader:
-            inputs, labels = data[0].to(device), data[1].to(device)
-            outputs = model(inputs)
-            _, predicted = torch.max(outputs.data, 1)
-            total += labels.size(0)
-            correct += (predicted == labels).sum().item()
-
-    print(f'进程 {rank} 在测试集上的准确率: {100 * correct / total} %')
-
-
-if __name__ == "__main__":
-    # 假设有两台服务器，每台服务器有两个 GPU
-    size = 4  # 进程数
-    processes = []
-    for rank in range(size):
-        p = torch.multiprocessing.Process(target=main, args=(rank, size))
-        p.start()
-        processes.append(p)
-
-    for p in processes:
-        p.join()
+# 输出预测准确率
+accuracy = np.mean(y_pred == y_test)
+print("Accuracy:", accuracy)
