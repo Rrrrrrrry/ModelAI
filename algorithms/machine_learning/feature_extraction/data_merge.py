@@ -39,14 +39,10 @@ def merge_classifications(data, windows=24, sim_threshold=0.7):
         first = data[start:end]
         last = data[end:end + windows]
         que = que + first
-        print(f"start{start}")
-        print(f"end{end}")
-        print(f"que{que}")
         if not compute_similarity(first, last, sim_threshold):
             # 将一段数据修改为相同的名字
             que = [max(que, key=Counter(que).get)] * len(que)
             maps.append(que)
-            print(f"que{que}")
             que = []
         start = end
         end = start + windows
@@ -58,8 +54,6 @@ def merge_classifications(data, windows=24, sim_threshold=0.7):
     new_maps = []
     que = []
     for i, item in enumerate(maps):
-        print(f"item{item}")
-        print(f"windows{windows}")
         if len(item) != windows:
             if que != []:
                 que = que + item
