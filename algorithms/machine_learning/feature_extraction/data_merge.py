@@ -77,7 +77,7 @@ def merge_classifications(data, windows=24, sim_threshold=0.7):
     new_maps = list(chain.from_iterable(new_maps))
     return new_maps
 
-if __name__ == '__main__':
-    data = [1, 2, 3, 1, 2, 2]
-    data_merge = merge_classifications(data, windows=3, sim_threshold=0.7)
-    print(f"data_merge{data_merge}")
+# if __name__ == '__main__':
+#     data = [1, 2, 3, 1, 2, 2]
+#     data_merge = merge_classifications(data, windows=3, sim_threshold=0.7)
+#     print(f"data_merge{data_merge}")
