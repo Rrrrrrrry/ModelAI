@@ -48,7 +48,7 @@ class CsvFileRead:
 
 def save_npy(data, file_path):
     """
-    保存np数据为npy文件
+    np数据保存为npy文件
     :param data:
     :param file_path:
     :return:
@@ -59,7 +59,7 @@ def save_npy(data, file_path):
 
 def load_npy(file_path):
     """
-    加载npy文件
+    npy文件的加载
     :param file_path:
     :return:
     """
