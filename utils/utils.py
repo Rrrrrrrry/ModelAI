@@ -1,6 +1,21 @@
 import hashlib
 import ast
+from pypinyin import pinyin, Style
 
+def chinese_to_upper_case(string):
+    """
+    获取中文对应的大写字母，英文不变
+    :param string:
+    :return:
+    """
+    # 使用 pypinyin 库将中文字符串转换为拼音
+    pinyin_result = pinyin(string, style=Style.FIRST_LETTER)
+
+    # 提取拼音首字母，并转换为大写
+    first_letters = [x[0].upper() for x in pinyin_result if x[0].isalpha()]
+
+    # 将提取的拼音首字母合并成一个字符串
+    return ''.join(first_letters)
 
 def baz(*args, **kwargs):
     """
