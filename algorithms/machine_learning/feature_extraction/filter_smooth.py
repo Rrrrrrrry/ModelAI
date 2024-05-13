@@ -64,6 +64,18 @@ class MVFilter(BaseModel):
         return self.fit(x)
 
 
+class SgFilter(BaseModel):
+    def __init__(self, window_size=31, polyorder=1, *kargs, **kwargs):
+        self.window_size = window_size
+        self.polyorder = polyorder
+
+    def fit(self, signal: np.ndarray, **kwargs):
+        filtered_signal = savgol_filter(signal, self.window_size, self.polyorder)
+        return filtered_signal
+
+    def predict(self, x):
+        return self.fit(x)
+
 class WaveFilter(BaseModel):
     def __init__(self, wavelet='sym8', level=4, threshold_method='greater', mode='symmetric', *kargs, **kwargs):
         """
@@ -362,7 +374,8 @@ func_class_dict = {'wave': WaveFilter,
                    'eemd': EEmdFilter,
                    'stft': STFTFilter,
                    'extremum': ExtremumFilter,
-                   'mv':MVFilter}
+                   'mv':MVFilter,
+                   'sg':SgFilter}
 
 
 class FilterSmooth:
