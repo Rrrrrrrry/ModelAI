@@ -18,6 +18,8 @@ sys.path.append(current_dir)
 from utils.evaluation_metrics import compute_bending_energy
 # from scripts.data_preprocess import del_outliers, edge_padding
 from algorithms.machine_learning.feature_extraction.data_preprocess import *
+from utils.obj_op import *
+
 
 class BaseModel(BaseEstimator):
     def fit(self, data: np.ndarray, **kwargs) -> np.ndarray:
@@ -25,7 +27,7 @@ class BaseModel(BaseEstimator):
 
 
 class MVFilter(BaseModel):
-    def __init__(self, window_size=8, outlier_k=None, *kargs, **kwargs):
+    def __init__(self, window_size=8, outlier_k=None, **kwargs):
         """
         移动平均滤波
         :param window_size:平滑窗口大小
@@ -65,19 +67,23 @@ class MVFilter(BaseModel):
 
 
 class SgFilter(BaseModel):
-    def __init__(self, window_size=31, polyorder=1, *kargs, **kwargs):
+    def __init__(self, window_size=31, polyorder=1, **kwargs):
         self.window_size = window_size
         self.polyorder = polyorder
+        self.kwargs = kwargs
+
 
     def fit(self, signal: np.ndarray, **kwargs):
-        filtered_signal = savgol_filter(signal, self.window_size, self.polyorder)
+        filter_kwargs = filter_param(self.kwargs, savgol_filter)
+        self.window_size = min(len(signal), self.window_size)
+        filtered_signal = savgol_filter(signal, self.window_size, self.polyorder, **filter_kwargs)
         return filtered_signal
 
     def predict(self, x):
         return self.fit(x)
 
 class WaveFilter(BaseModel):
-    def __init__(self, wavelet='sym8', level=4, threshold_method='greater', mode='symmetric', *kargs, **kwargs):
+    def __init__(self, wavelet='sym8', level=4, threshold_method='greater', mode='symmetric', **kwargs):
         """
         对数据进行小波变换
         :param signal: 需要小波变换的数据
@@ -90,6 +96,7 @@ class WaveFilter(BaseModel):
         self.level = level
         self.threshold_method = threshold_method
         self.mode = mode
+        self.kwargs = kwargs
         # super().__init__()
 
     @staticmethod
@@ -117,7 +124,8 @@ class WaveFilter(BaseModel):
     def fit(self, signal: np.ndarray, y=None, **kwargs):
         signal = np.array(signal)
         # 进行小波变换
-        wave_coeffs = pywt.wavedec(signal, self.wavelet, level=self.level, mode=self.mode)
+        filter_kwargs = filter_param(self.kwargs, pywt.wavedec)
+        wave_coeffs = pywt.wavedec(signal, self.wavelet, level=self.level, mode=self.mode, **filter_kwargs)
 
         # 获取估计噪声标准差
         sigma = self.estimated_noise_std(signal)
@@ -141,7 +149,7 @@ class WaveFilter(BaseModel):
 
 
 class EmdFilter(BaseModel):
-    def __init__(self, max_num_imf=4, choose_level=-1, *args, **kwargs):
+    def __init__(self, max_num_imf=4, choose_level=-1, **kwargs):
         """
         EMD经验模态分解
         :param signal:需要进行emd变换的数据
@@ -150,6 +158,7 @@ class EmdFilter(BaseModel):
         """
         self.max_num_imf = max_num_imf
         self.choose_level = choose_level
+        self.kwargs = kwargs
 
     def fit(self, signal: np.ndarray, y=None, **kwargs):
         signal = np.array(signal)
@@ -159,7 +168,9 @@ class EmdFilter(BaseModel):
         emd.FIXE_H = 0  # 不使用固定阈值
         emd.FIXE = 0  # 不使用固定频率
         emd.SIFT = 0  # 不使用 SIFT 过程
-        emd_result = emd(signal)[self.choose_level]
+
+        filter_kwargs = filter_param(self.kwargs, emd)
+        emd_result = emd(signal, **filter_kwargs)[self.choose_level]
         return emd_result
 
     def predict(self, x):
@@ -167,7 +178,7 @@ class EmdFilter(BaseModel):
 
 
 class EEmdFilter(BaseModel):
-    def __init__(self, max_num_imf=4, choose_level=-1, *args, **kwargs):
+    def __init__(self, max_num_imf=4, choose_level=-1, **kwargs):
         """
         EMD经验模态分解
         :param signal:需要进行emd变换的数据
@@ -176,6 +187,7 @@ class EEmdFilter(BaseModel):
         """
         self.max_num_imf = max_num_imf
         self.choose_level = choose_level
+        self.kwargs = kwargs
 
     def fit(self, signal: np.ndarray, y=None, **kwargs):
         signal = np.array(signal)
@@ -186,7 +198,8 @@ class EEmdFilter(BaseModel):
         eemd.FIXE = 0  # 不使用固定频率
         eemd.SIFT = 0  # 不使用 SIFT 过程
         # 执行EEMD分解
-        emd_result = eemd.eemd(signal, np.array(range(len(signal))))[self.choose_level]
+        filter_kwargs = filter_param(self.kwargs, eemd.eemd)
+        emd_result = eemd.eemd(signal, np.array(range(len(signal))), **filter_kwargs)[self.choose_level]
         return emd_result
 
     def predict(self, x):
@@ -194,7 +207,7 @@ class EEmdFilter(BaseModel):
 
 
 class STFTFilter(BaseModel):
-    def __init__(self, window_size=256, noverlap=None, threshold=0.5, window='hann', boundary='even', *args, **kwargs):
+    def __init__(self, window_size=256, noverlap=None, threshold=0.5, window='hann', boundary='even', **kwargs):
         """
         短时傅里叶变换
         :param window_size:每个段的样本数
@@ -208,6 +221,7 @@ class STFTFilter(BaseModel):
         self.threshold = threshold
         self.window = window
         self.boundary = boundary
+        self.kwargs = kwargs
 
     def fit(self, signal: np.ndarray, **kwargs):
         """
@@ -218,8 +232,10 @@ class STFTFilter(BaseModel):
         # 窗口大小不能超过原始数据的大小
         self.window_size = min(self.window_size, len(signal))
         # 计算STFT
+        filter_kwargs = filter_param(self.kwargs, sig.stft)
+
         f, t, Zxx = sig.stft(signal, window=self.window, nperseg=self.window_size, noverlap=self.noverlap,
-                             boundary=self.boundary)
+                             boundary=self.boundary, **filter_kwargs)
 
         # 应用阈值，将低于阈值的幅度置为0
         Zxx[np.abs(Zxx) < self.threshold] = 0
@@ -380,4 +396,6 @@ func_class_dict = {'wave': WaveFilter,
 
 class FilterSmooth:
     def __new__(cls, model_type, *args, **kwargs):
+        if model_type not in func_class_dict:
+            raise ValueError(f"{model_type} must in {list(func_class_dict.keys())}")
         return func_class_dict[model_type](*args, **kwargs)
