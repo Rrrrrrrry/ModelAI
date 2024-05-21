@@ -6,8 +6,31 @@ import logging
 import os
 import sys
 from utils.utils import is_evaluable
+import re
 
 config = configparser.ConfigParser()
+
+
+def modify_config_file(config_file, choose_model_name, filter_label_list, train_well_file_name):
+    """
+    修改配置文件中的某些参数（需要进一步完善）
+    :param config_file:
+    :param choose_model_name:
+    :param filter_label_list:
+    :param train_well_file_name:
+    :return:
+    """
+    # 读取配置文件内容
+    with open(config_file, 'r', encoding='utf-8') as f:
+        config_content = f.read()
+    # 替换参数值
+    config_content = re.sub(r"choose_model_name\s*=\s*'.*?'", f"choose_model_name = '{choose_model_name}'", config_content)
+    config_content = re.sub(r"filter_label_list\s*=\s*\[.*?\]", f"filter_label_list = {filter_label_list}", config_content)
+    config_content = re.sub(r"train_well_file_name\s*=\s*\[.*?\]", f"train_well_file_name = {train_well_file_name}", config_content)
+
+    # 写入修改后的内容到配置文件
+    with open(config_file, 'w') as f:
+        f.write(config_content)
 
 def set_config():
     # 添加配置项和值

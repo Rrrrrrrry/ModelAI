@@ -1,6 +1,19 @@
 import hashlib
 import ast
+from itertools import combinations
+
 from pypinyin import pinyin, Style
+
+def get_all_combination(data_list, combine_num):
+    """
+    获取每combine_num一组，data_list内所有的组合方式
+    :param data_list:
+    :param combine_num:
+    :return:
+    """
+    all_combinations = list(combinations(data_list, combine_num))
+    all_combinations = [list(comb) for comb in all_combinations]
+    return all_combinations
 
 def chinese_to_upper_case(string):
     """
