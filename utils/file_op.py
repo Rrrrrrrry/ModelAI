@@ -1,3 +1,4 @@
+import glob
 import os
 import numpy as np
 import chardet
@@ -68,3 +69,13 @@ def load_npy(file_path):
     else:
         data = []
     return data
+
+def glob_select_file(root_path, select_file_name):
+    """
+    从根目录下遍历搜索所有名为select_file_name的文件
+    :param root_path:
+    :param select_file_name:
+    :return:
+    """
+    files = glob.glob(os.path.join(root_path, '**', select_file_name), recursive=True)
+    return files
