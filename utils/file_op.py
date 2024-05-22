@@ -73,9 +73,9 @@ def load_npy(file_path):
 def glob_select_file(root_path, select_file_name):
     """
     从根目录下遍历搜索所有名为select_file_name的文件
-    :param root_path:
-    :param select_file_name:
-    :return:
+    :param root_path:根路径
+    :param select_file_name:待搜索的文件名
+    :return:所有文件路径
     """
     files = glob.glob(os.path.join(root_path, '**', select_file_name), recursive=True)
     return files
