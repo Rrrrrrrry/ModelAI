@@ -38,6 +38,7 @@ def initialize_hmm_with_gmm(X, n_components=3):
 
 def gmm_hmm(X, n_components=3):
     model = hmm.GMMHMM(n_components=n_components, covariance_type='full', random_state=42)
+    # model.transmat_ = np.full((n_components, n_components), 1.0 / n_components)
     model.fit(X)
     hidden_states = model.predict(X)
     return hidden_states

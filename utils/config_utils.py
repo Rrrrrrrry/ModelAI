@@ -2,6 +2,7 @@
 不完善
 """
 import configparser
+import json
 import logging
 import os
 import sys
@@ -11,25 +12,52 @@ import re
 config = configparser.ConfigParser()
 
 
-def modify_config_file(config_file, choose_model_name, filter_label_list, train_well_file_name):
+def generate_pattern(key, value):
     """
-    修改配置文件中的某些参数（需要进一步完善）
-    :param config_file:
-    :param choose_model_name:
-    :param filter_label_list:
-    :param train_well_file_name:
+    根据值的类型,给key生成相应的正则表达式
+    :param key:
+    :param value:
+    :return:
+    """
+    if isinstance(value, str):
+        # 匹配字符串类型的参数
+        return re.compile(rf"{key}\s*=\s*'.*?'")
+    elif isinstance(value, (int, float)):
+        # 匹配数字类型的参数
+        return re.compile(rf"{key}\s*=\s*[\d.]+")
+    elif isinstance(value, list):
+        # 匹配列表类型的参数
+        return re.compile(rf"{key}\s*=\s*\[.*?\]")
+    else:
+        raise ValueError(f"Unsupported value type for key: {key}")
+
+
+def modify_config_file(config_file, modifications):
+    """
+    修改配置文件内的参数
+    :param config_file: 配置文件路径
+    :param modifications: 包含要修改数据的字典
     :return:
     """
     # 读取配置文件内容
     with open(config_file, 'r', encoding='utf-8') as f:
         config_content = f.read()
-    # 替换参数值
-    config_content = re.sub(r"choose_model_name\s*=\s*'.*?'", f"choose_model_name = '{choose_model_name}'", config_content)
-    config_content = re.sub(r"filter_label_list\s*=\s*\[.*?\]", f"filter_label_list = {filter_label_list}", config_content)
-    config_content = re.sub(r"train_well_file_name\s*=\s*\[.*?\]", f"train_well_file_name = {train_well_file_name}", config_content)
+
+    # 遍历字典并替换相应的参数值
+    for key, value in modifications.items():
+        pattern = generate_pattern(key, value)
+        if isinstance(value, str):
+            replacement = f"{key} = '{value}'"
+        elif isinstance(value, (int, float)):
+            replacement = f"{key} = {value}"
+        elif isinstance(value, list):
+            replacement = f"{key} = {json.dumps(value)}"  # 使用 json.dumps 生成列表字符串
+        else:
+            raise ValueError(f"Unsupported value type for key: {key}")
+        config_content = pattern.sub(replacement, config_content)
 
     # 写入修改后的内容到配置文件
-    with open(config_file, 'w') as f:
+    with open(config_file, 'w', encoding='utf-8') as f:
         f.write(config_content)
 
 def set_config():

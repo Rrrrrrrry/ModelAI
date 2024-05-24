@@ -16,7 +16,7 @@ class LightGBM_Manager:
         self.best_trial_params = None
 
     def train(self, params):
-        # Train the CatBoost model
+        # Train the LGBM model
         self.model = LGBMClassifier(**params, eval_metric=self.eval_metric)
         self.model.fit(self.X_train, self.y_train)
 
@@ -26,8 +26,6 @@ class LightGBM_Manager:
             return self.model.predict(test_data)
         else:
             print("Model not trained yet. Please train the model first.")
-
-
 
 
     def objective(self, trial):
