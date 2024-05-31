@@ -20,7 +20,7 @@ if __name__=="__main__":
     config_file = os.path.join(os.path.dirname(sys.path[0]), 'config', 'config_test.py')
 
     # 遍历所有组合
-    for choose_model_name, filter_label_list, train_well_file_name_combination, float_test_data in itertools.product(
+    for choose_model_name, filter_label_list, train_well_file_name, float_test_data in itertools.product(
             choose_model_name_options,
             filter_label_list_options,
             train_well_file_name_options,
@@ -28,12 +28,12 @@ if __name__=="__main__":
         try:
             print(f"choose_model_name32{choose_model_name}")
             print(f"filter_label_list{filter_label_list}")
-            print(f"train_well_file_name_combination{train_well_file_name_combination}")
+            print(f"train_well_file_name_combination{train_well_file_name}")
             # 修改配置文件
             # modify_config_file(config_file, choose_model_name, filter_label_list, train_well_file_name_combination)
             modify_config_file(config_file, {"choose_model_name": choose_model_name,
                                              "filter_label_list": filter_label_list,
-                                             "train_well_file_name": train_well_file_name_combination,
+                                             "train_well_file_name": train_well_file_name,
                                              "data_test": float_test_data})
             # 调脚本
             # call_lith_py()
