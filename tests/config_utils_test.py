@@ -30,7 +30,6 @@ if __name__=="__main__":
             print(f"filter_label_list{filter_label_list}")
             print(f"train_well_file_name_combination{train_well_file_name}")
             # 修改配置文件
-            # modify_config_file(config_file, choose_model_name, filter_label_list, train_well_file_name_combination)
             modify_config_file(config_file, {"choose_model_name": choose_model_name,
                                              "filter_label_list": filter_label_list,
                                              "train_well_file_name": train_well_file_name,
