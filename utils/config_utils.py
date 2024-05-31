@@ -46,6 +46,9 @@ def modify_config_file(config_file, modifications):
     # 遍历字典并替换相应的参数值
     for key, value in modifications.items():
         pattern = generate_pattern(key, value)
+        print(f"key, value{key, value}")
+        print(f"pattern{pattern}")
+
         if isinstance(value, str):
             replacement = f"{key} = '{value}'"
         elif isinstance(value, (int, float)):
@@ -54,7 +57,10 @@ def modify_config_file(config_file, modifications):
             replacement = f"{key} = {json.dumps(value)}"  # 使用 json.dumps 生成列表字符串
         else:
             raise ValueError(f"Unsupported value type for key: {key}")
+        print(f"replacement{replacement}")
+
         config_content = pattern.sub(replacement, config_content)
+        print(f"config_content{config_content}")
 
     # 写入修改后的内容到配置文件
     with open(config_file, 'w', encoding='utf-8') as f:
