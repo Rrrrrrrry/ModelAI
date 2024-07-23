@@ -59,12 +59,6 @@ class CsvFileRead:
         return curves_datas
 
 
-
-
-
-
-
-
 class TxtFileRead:
     """
     获取txt格式的测试曲线数据
@@ -160,7 +154,10 @@ def glob_select_file(root_path, select_file_name):
     files = glob.glob(os.path.join(root_path, '**', select_file_name), recursive=True)
     return files
 
-if __name__ == '__main__':
-    data_path = r"\\nas.yxsd\大数据产品部\辽河_小层识别_r\240715齐40智能地层划分\pre_信息所_齐40_智能对比sj\解释表/well2_IntpAct1.txt"
-    data = TxtFileRead.read_file(data_path)
-    print(data)
+# if __name__ == '__main__':
+#     from pathlib import Path
+#     import sys
+#     root_path = str(Path(sys.path[0]).resolve().parents[0])
+#     data_path = os.path.join(root_path, 'datasets', 'txt', 'test.txt')
+#     data = TxtFileRead.read_file(data_path)
+#     print(data)
