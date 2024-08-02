@@ -37,7 +37,29 @@ class ExcelFileRead:
             return pd.DataFrame()
         curves_datas = pd.read_excel(file_path)
         return curves_datas
+    @staticmethod
+    def read_excel_sheets(file_path):
+        """
+        读取xlsx中的所有sheet页数据
+        :param file_path:
+        :return: {sheet_name:sheet_data}
+        """
+        sheets = {}
+        with pd.ExcelFile(file_path) as xlsx:
+            sheets = {sheet_name: xlsx.parse(sheet_name) for sheet_name in xlsx.sheet_names}
+        return sheets
 
+    @staticmethod
+    def save_excel_sheets(sheets, save_path):
+        """
+        保存各sheets到文件下
+        :param sheets: {sheet_name:sheet_data}
+        :param save_path:
+        :return:
+        """
+        with pd.ExcelWriter(save_path, engine='xlsxwriter') as writer:
+            for each_sheet_name, each_sheet_data in sheets.items():
+                each_sheet_data.to_excel(writer, sheet_name=each_sheet_name, index=False)
 
 class CsvFileRead:
     """
@@ -154,10 +176,18 @@ def glob_select_file(root_path, select_file_name):
     files = glob.glob(os.path.join(root_path, '**', select_file_name), recursive=True)
     return files
 
-# if __name__ == '__main__':
-#     from pathlib import Path
-#     import sys
-#     root_path = str(Path(sys.path[0]).resolve().parents[0])
-#     data_path = os.path.join(root_path, 'datasets', 'txt', 'test.txt')
-#     data = TxtFileRead.read_file(data_path)
-#     print(data)
+
+if __name__ == '__main__':
+    from pathlib import Path
+    import sys
+    root_path = str(Path(sys.path[0]).resolve().parents[0])
+    # data_path = os.path.join(root_path, 'datasets', 'txt', 'test.txt')
+    # data = TxtFileRead.read_file(data_path)
+    # print(data)
+
+    data_path = os.path.join(root_path, 'datasets', 'excel', 'test.xlsx')
+    save_path = os.path.join(root_path, 'datasets', 'excel', 'test_s.xlsx')
+    data = ExcelFileRead.read_excel_sheets(data_path)
+
+    ExcelFileRead.save_excel_sheets(data, save_path)
+    print(data)
