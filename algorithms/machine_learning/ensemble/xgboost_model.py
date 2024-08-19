@@ -24,3 +24,7 @@ class XGBoostModel:
         y_pred = self.predict(X_test)
         y_pred_binary = [round(value) for value in y_pred]
         return accuracy_score(y_test, y_pred_binary)
+
+    def get_feature_importance(self, importance_type='weight'):
+        importances = self.model.get_booster().get_score(importance_type=importance_type)
+        return importances
