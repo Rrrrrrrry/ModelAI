@@ -89,28 +89,48 @@ def plot_confusion_matrix(cm, row_labels, col_labels,
         plt.show()
 
 
+def plot_kde(data, label=None, ax=None, **kwargs):
+    """
+    绘制核密度估计图。
+
+    :param data: 数据序列。
+    :param label: 图例标签。
+    :param ax: Matplotlib Axes 对象。
+    :param kwargs: 其他传递给 sns.kdeplot 的关键字参数。
+    """
+    if ax is None:
+        ax = plt.gca()
+
+    sns.kdeplot(data=data, fill=True, label=label, ax=ax, **kwargs)
+    plt.legend()  # 显示图例
+    plt.show()
+
 if __name__ == '__main__':
     # # 示例用法
     # tips = sns.load_dataset("tips")
     # plot_jointplot(data=tips, x="total_bill", y="tip", kind="scatter")
 
-    # 示例数据
-    data = [
-        [1, 2, 3, 4],
-        [5, 6, 7, 8],
-        [9, 10, 11, 12],
-        [13, 14, 15, 16]
-    ]
+    # # 示例数据
+    # data = [
+    #     [1, 2, 3, 4],
+    #     [5, 6, 7, 8],
+    #     [9, 10, 11, 12],
+    #     [13, 14, 15, 16]
+    # ]
+    #
+    # row_labels = ['行 1', 'Row 2', 'Row 3', 'Row 4']
+    # col_labels = ['Col 1', '列 2', 'Col 3', 'Col 4']
+    #
+    # # 绘制热力图
+    # plot_heatmap(data, row_labels, col_labels, title='Example Heatmap', cmap='YlGnBu')
+    #
+    # plot_confusion_matrix(data, row_labels, col_labels,
+    #                           normalize=False,
+    #                           title='矩阵',
+    #                           cmap=plt.cm.Blues,
+    #                           filename='confusion_matrix.png', if_save=False, if_show=True)
 
-    row_labels = ['行 1', 'Row 2', 'Row 3', 'Row 4']
-    col_labels = ['Col 1', '列 2', 'Col 3', 'Col 4']
-
-    # 绘制热力图
-    plot_heatmap(data, row_labels, col_labels, title='Example Heatmap', cmap='YlGnBu')
-
-    plot_confusion_matrix(data, row_labels, col_labels,
-                              normalize=False,
-                              title='矩阵',
-                              cmap=plt.cm.Blues,
-                              filename='confusion_matrix.png', if_save=False, if_show=True)
+    # 绘制核密度估计图
+    d = np.random.normal(size=100)  # 生成一些随机数据
+    plot_kde(d, label="Example Data")
 
