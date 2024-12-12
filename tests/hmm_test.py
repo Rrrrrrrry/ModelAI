@@ -10,6 +10,6 @@ if __name__ == '__main__':
     np.random.seed(42)
     data = np.random.randn(100, 5)  # 100个时间步，每个时间步有5个特征
     hidden_states = initialize_hmm_with_gmm(data)
-    hidden_states1 = gmm_hmm(data)
+    logprob, hidden_states1 = gmm_hmm(data)
     print(hidden_states)
-    print(hidden_states1)
+    print(logprob, hidden_states1)

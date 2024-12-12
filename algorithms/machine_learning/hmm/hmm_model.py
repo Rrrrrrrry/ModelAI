@@ -37,11 +37,29 @@ def initialize_hmm_with_gmm(X, n_components=3):
 
 
 def gmm_hmm(X, n_components=3):
+    """
+    使用GMM-HMM模型对时间序列数据进行建模，并返回最有可能的状态路径
+    :param X:观测序列数据，通常是一个二维数组（n_sample,n_features）
+    :param n_components:隐藏状态个数，通常为3
+    :return:
+    """
+    # 初始化GMM-HMM
     model = hmm.GMMHMM(n_components=n_components, covariance_type='full', random_state=42)
     # model.transmat_ = np.full((n_components, n_components), 1.0 / n_components)
+
+    # 模型训练
     model.fit(X)
-    hidden_states = model.predict(X)
-    return hidden_states
+
+    # # 给定预测序列X中，每个时间点上的最可能隐藏状态（基于前向-后向算法）
+    # hidden_states = model.predict(X)
+    #
+    # # 给定观测序列X在给定模型下的出现对数似然概率，用于评估模型与观测数据的匹配程度
+    # logprob = model.score(X)
+
+    # 解码观测序列X，找到最有可能的状态路径（Viterbi路径）
+    logprob, hidden_states = model.decode(X, algorithm="viterbi")
+
+    return logprob, hidden_states
 
 
 
