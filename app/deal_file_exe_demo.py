@@ -50,4 +50,10 @@ pyinstaller --onefile --windowed --distpath D:\python_program\ModelAI\app\exe_de
 通过编辑 .spec 文件，你可以更精细地控制打包过程。下次打包用pyinstaller file_processor.spec即可
 可以在打包时修改bulid和spec的保存路径
 pyinstaller --onefile --windowed --workpath D:\python_program\ModelAI\app\exe_demo\build --specpath D:\python_program\ModelAI\app\exe_demo --distpath D:\python_program\ModelAI\app\exe_demo deal_file_exe_demo.py
+
+--onefile：将整个项目打包成一个单独的 .exe 文件（所有依赖都压缩到一个文件中）
+--windowed：仅 Windows 和 macOS
+--distpath: 控制输出路径；PyInstaller 会在当前目录下生成 dist/ 文件夹
+--noconfirm：如果目标目录（如 build/, dist/）已经存在，不会提示是否覆盖，直接替换。在自动化构建脚本中有用
+--workpath：设置 PyInstaller 构建过程中的临时工作目录 （用来存放中间文件）。
 """
